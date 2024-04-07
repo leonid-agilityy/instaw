@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit page</title>
+
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'team_members/css/style.css' %}">
+    <script src="{% static 'team_members/js/phone_number.js' %}"></script>
+</head>
+<body>
+
+<h1>Edit team member</h1>
+<p>Edit contact info, location and role.</p>
+
+<form action="{% url 'team_members:edit' member.id %}" method="post">
+    {% csrf_token %}
+
+    <div class="errors">
+        {{ form.non_field_errors }}
+    </div>
+
+    <fieldset class="fieldset-auto-width">
+        <legend><h1>Info</h1></legend>
+
+        <input type="text" id="first_name" size="50" placeholder="Charlene" name="first_name" value="{{ member.first_name|default_if_none:"" }}" required></input><br><br>
+        <input type="text" id="last_name" size="50" placeholder="Pham" name="last_name" value="{{ member.last_name|default_if_none:"" }}" required></input><br><br>
+        <input type="text" id="email" size="50" placeholder="charlene@instawork.com" name="email" value="{{ member.email|default_if_none:"" }}" required></input><br><br>
+        <input type="text" id="phone" size="12" placeholder="415-310-1619" name="phone_number" value="{{ member.phone_number|default_if_none:"" }}" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" required></input><br><br>
+    </fieldset>
+
+    <div class="role-block">
+        <h3>Role</h3>
+        {% for role_choice in member_role_choices %}
+        <input type="radio" id="role_{{ role_choice.0 }}" name="role" value={{ role_choice.0 }} {% if role_choice.0 == member.role %}checked{% endif %}>
+        <label for="role_{{ role_choice.0 }}">{{ role_choice.1 }}</label><br>
+        {% endfor %}
+    </div>
+    <br><br>
+    <button type="button" id="delete-btn">Delete</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <input type="submit" value="Save">
+</form>
+
+<script>
+format_phone_number()
+</script>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+// Delete button click action w/JQuery
+$(document).ready(function() {
+    $('#delete-btn').click(function() {
+        $.ajax({
+            url: '{% url 'team_members:delete' member.id %}',
+            type: 'post',
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'pk': '{{ member.id }}'
+            },
+            success: function(response) {
+                window.location.href = '{% url 'team_members:index' %}';
+            },
+            error: function(xhr, status, error) {
+                console.error('Error:', error);
+            }
+        });
+    });
+});
+</script>
+
+</body>
+</html>

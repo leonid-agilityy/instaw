@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Team Members - List</title>
+
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'team_members/css/style.css' %}">
+    <script src="{% static 'team_members/js/phone_number.js' %}"></script>
+</head>
+<body>
+
+<a href="{% url 'team_members:create' %}" class="add-member-link"> + </a>
+<h2>Team members</h2>
+<p>You have {{ members_total_count }} team members. </p>
+
+{% if members_list %}
+    <div class="data-block-container">
+        {% for member in members_list %}
+                <hr class="separator">
+                <div class="data-block-wrapper">
+                    <div class="data-block">
+                        <a href="{% url 'team_members:edit' member.id %}" class="block-link">
+                            <div class="member_name"> {{ member.first_name }} {{ member.last_name }} {% if member.role == 1 %} (admin) {% endif %} </div>
+                            <div class="phone"> {{ member.phone_number }} </div>
+                            <div class="email"> {{ member.email }}</div>
+                        </a>
+                    </div>
+                </div>
+                <hr class="separator">
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+            <a href="?page=1">&laquo; first</a>
+            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            {% if members_total_count > 0 %}
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+            {% endif %}
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+
+<script>
+format_phone_number()
+</script>
+
+
+
+</body>
+</html>

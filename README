@@ -1,0 +1,28 @@
+Django version used: 5.0.3
+Python version used: 3.12.2
+
+Pull the Git repository content into your local directory.
+Go to the "prj" folder.
+
+For the local mini test, we would use Sq-lite that comes with the Django distribution.
+We will also use Django's standard Web server - WSGI.
+
+Create an run DB migrations:
+python manage.py migrate
+
+To run the tests, go to "prj" folder and run:
+python manage.py test team_members
+[I put only a couple of tests...]
+
+To run the server, go to "prj" folder and run:
+python manage.py runserver
+
+[You can activate the Django environment prior to running the server.
+This project does not use any non -built-in Python or Django packages.]
+
+The default settings will run the server on IP 127.0.0.1, port 8000.
+The DEBUG mode is ON.
+
+Open the browser and access: http://127.0.0.1:8000/team_members/.
+This should show you the List Page. From there, follow the navigation steps in the spec.
+I added pagination to the list that was not in the spec. The default page size is 3.
