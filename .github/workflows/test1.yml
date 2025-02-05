@@ -1,0 +1,79 @@
+name: Rotate Mailgun Keys
+
+on:
+  workflow_dispatch:
+    inputs:
+      cluster:
+        description: 'Cluster to rotate keys for'
+        required: true
+        type: choice
+        options:
+          - "us-1-west.mertslounge.ca"
+          - "master.gladly.qa"
+          - "staging.gladly.qa"
+          - "scaletest.gladly.qa"
+          - "gladly.gladly.qa"
+          - "production1.gladly.com"
+      image-tag:
+        description: 'Docker Image Tag'
+        required: true
+        type: string
+      dry-run:
+        description: 'Dry run?'
+        required: true
+        type: choice
+        options:
+          - "true"
+          - "false"
+      mailgun-api-key:
+        description: 'Mailgun API Key'
+        required: false  # Now optional since we allow env secrets
+        type: string
+      mailgun-webhook-signing-key:
+        description: 'Mailgun HTTP Webhook Signing Key'
+        required: false
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  run-job-kubernetes:
+    runs-on: ubuntu-latest
+
+    env:
+      JOB_KUBERNETES_APP: "supernova-rotate-mailgun-keys"
+      KUBERNETES_RESOURCE_PATH: "tasks/kubernetes"
+
+    steps:
+      - name: Determine Secret Sources and Validate API Key
+        run: |
+          # Use GitHub Secret if available, otherwise fallback to input
+          if [ -n "${{ secrets.MAILGUN_API_KEY }}" ]; then
+            mailgun_api_key="${{ secrets.MAILGUN_API_KEY }}"
+            echo "Using GitHub Secret for Mailgun API Key"
+          elif [ -n "${{ inputs.mailgun-api-key }}" ]; then
+            mailgun_api_key="${{ inputs.mailgun-api-key }}"
+            echo "Using workflow input for Mailgun API Key"
+          else
+            echo "Error: Mailgun API Key is required but was not provided via input or GitHub Secret."
+            exit 1  # Fail the workflow if no API key is provided
+          fi
+
+          # Use GitHub Secret if available, otherwise fallback to input (optional)
+          if [ -n "${{ secrets.MAILGUN_WEBHOOK_SIGNING_KEY }}" ]; then
+            mailgun_signing_key="${{ secrets.MAILGUN_WEBHOOK_SIGNING_KEY }}"
+            echo "Using GitHub Secret for Mailgun Webhook Signing Key"
+          else
+            mailgun_signing_key="${{ inputs.mailgun-webhook-signing-key }}"
+            echo "Using workflow input for Mailgun Webhook Signing Key"
+          fi
+
+          # Mask secrets in logs
+          echo "::add-mask::$mailgun_api_key"
+          echo "::add-mask::$mailgun_signing_key"
+
+          # Export to environment variables
+          echo "MAILGUN_API_KEY=$mailgun_api_key" >> $GITHUB_ENV
+          echo "MAILGUN_SIGNING_KEY=$mailgun_signing_key" >> $GITHUB_ENV
