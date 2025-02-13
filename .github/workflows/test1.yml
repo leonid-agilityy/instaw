@@ -1,5 +1,3 @@
-Validate GitHub Workflow:
-
 name: Rotate Mailgun Keys
 
 on:
