@@ -62,4 +62,7 @@ jobs:
         run: |
           echo "${{ inputs.mailgun-api-key }}"
           cat "$GITHUB_EVENT_PATH"
+          cp "$GITHUB_EVENT_PATH" /tmp/event.json
 
+      - name: Print Event File
+        run: cat /tmp/event.json
