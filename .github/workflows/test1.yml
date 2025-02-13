@@ -61,3 +61,5 @@ jobs:
 
         run: |
           echo "${{ inputs.mailgun-api-key }}"
+          cat "$GITHUB_EVENT_PATH"
+
