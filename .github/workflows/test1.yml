@@ -47,22 +47,26 @@ jobs:
       KUBERNETES_RESOURCE_PATH: "tasks/kubernetes"
 
     steps:
-      - name: Mask secret keys
+      - name: Mask secret values
         run: |
-             mailgun_api_key="$(jq -r '.inputs."mailgun-api-key"' "$GITHUB_EVENT_PATH")"
-             mailgun_signing_key="$(jq -r '.inputs."mailgun-webhook-signing-key"' "$GITHUB_EVENT_PATH")"
-             echo "::add-mask::${mailgun_api_key}"          # Mask secrets in logs
-             echo "::add-mask::${mailgun_signing_key}"
+          mailgun_api_key="$(jq -r '.inputs."mailgun-api-key"' "$GITHUB_EVENT_PATH")"
+          mailgun_signing_key="$(jq -r '.inputs."mailgun-webhook-signing-key"' "$GITHUB_EVENT_PATH")"
 
-      - name: Test
-        env:
-          API_SECRET: ${{ inputs.mailgun-api-key }}
-          SIGNING_KEY: ${{ inputs.mailgun-webhook-signing-key }}
+          echo "::add-mask::${mailgun_api_key}"
+          echo "::add-mask::${mailgun_signing_key}"
 
+          # Export to environment variables for later steps
+          echo "MAILGUN_API_KEY=$mailgun_api_key" >> $GITHUB_ENV
+          echo "MAILGUN_SIGNING_KEY=$mailgun_signing_key" >> $GITHUB_ENV
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Substitute Environment Variables in Manifest
         run: |
-          echo "${{ inputs.mailgun-api-key }}"
-          cat "$GITHUB_EVENT_PATH"
-          cp "$GITHUB_EVENT_PATH" /tmp/event.json
-
-      - name: Print Event File
-        run: cat /tmp/event.json
+          sed -i "
+            s|\${IMAGE_TAG}|${{ inputs.image-tag }}|g;
+            s|\${DRY_RUN}|${{ inputs.dry-run }}|g;
+            s|\${MAILGUN_API_KEY}|${{ env.MAILGUN_API_KEY }}|g;
+            s|\${MAILGUN_SIGNING_KEY}|${{ env.MAILGUN_SIGNING_KEY }}|g
+          " ${{ env.KUBERNETES_RESOURCE_PATH }}/${{ env.JOB_KUBERNETES_APP }}-job.yml
