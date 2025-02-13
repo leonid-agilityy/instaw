@@ -53,3 +53,11 @@ jobs:
              mailgun_signing_key="$(jq -r '.inputs."mailgun-webhook-signing-key"' "$GITHUB_EVENT_PATH")"
              echo "::add-mask::${mailgun_api_key}"          # Mask secrets in logs
              echo "::add-mask::${mailgun_signing_key}"
+
+      - name: Test
+        env:
+          API_SECRET: ${{ inputs.mailgun-api-key }}
+          SIGNING_KEY: ${{ inputs.mailgun-webhook-signing-key }}
+
+        run: |
+          echo "${{ inputs.mailgun-api-key }}"
